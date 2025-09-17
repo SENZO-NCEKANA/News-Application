@@ -1,0 +1,199 @@
+{% extends 'news/base.html' %}
+
+{% block title %}Publisher Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">Publisher Dashboard</h1>
+                <div>
+                    <a href="{% url 'news:create_article' %}" class="btn btn-success me-2">
+                        <i class="fas fa-plus"></i> New Article
+                    </a>
+                    <a href="{% url 'news:article_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> All Articles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Publisher Info Cards -->
+    <div class="row mb-4">
+        {% for publisher in publishers %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ publisher.name }}</h5>
+                    <p class="card-text text-muted">{{ publisher.description|truncatewords:20 }}</p>
+                    {% if publisher.website %}
+                        <a href="{{ publisher.website }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt"></i> Website
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_articles }}</h4>
+                            <p class="card-text">Total Articles</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-newspaper fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ pending_articles }}</h4>
+                            <p class="card-text">Pending Approval</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ journalists.count }}</h4>
+                            <p class="card-text">Journalists</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-edit fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ other_editors.count }}</h4>
+                            <p class="card-text">Other Editors</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Articles -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Articles</h5>
+                </div>
+                <div class="card-body">
+                    {% if articles %}
+                        <div class="list-group list-group-flush">
+                            {% for article in articles %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">
+                                        <a href="{% url 'news:article_detail' article.pk %}" class="text-decoration-none">
+                                            {{ article.title }}
+                                        </a>
+                                    </div>
+                                    <small class="text-muted">
+                                        By {{ article.author.get_full_name|default:article.author.username }} 
+                                        • {{ article.created_at|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-{% if article.status == 'published' %}success{% elif article.status == 'pending' %}warning{% elif article.status == 'draft' %}secondary{% else %}danger{% endif %}">
+                                    {{ article.get_status_display }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">No articles found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Team Members -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Team Members</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Journalists</h6>
+                    {% if journalists %}
+                        <div class="list-group list-group-flush">
+                            {% for journalist in journalists %}
+                            <div class="list-group-item px-0 py-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2">
+                                        <i class="fas fa-user-circle text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ journalist.get_full_name|default:journalist.username }}</div>
+                                        <small class="text-muted">{{ journalist.email }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted small">No journalists assigned yet.</p>
+                    {% endif %}
+                    
+                    {% if other_editors %}
+                    <hr>
+                    <h6 class="text-primary">Other Editors</h6>
+                    <div class="list-group list-group-flush">
+                        {% for editor in other_editors %}
+                        <div class="list-group-item px-0 py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2">
+                                    <i class="fas fa-user-shield text-muted"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ editor.get_full_name|default:editor.username }}</div>
+                                    <small class="text-muted">{{ editor.email }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
